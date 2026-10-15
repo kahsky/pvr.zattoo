@@ -134,6 +134,19 @@ bool ZatData::LoadChannels()
     kodi::Log(ADDON_LOG_INFO, "Zattoo channel fields: %s", Utils::JsonMemberNames(first).c_str());
     if (first.IsObject() && first.HasMember("qualities") && first["qualities"].IsArray() && first["qualities"].Size() > 0)
       kodi::Log(ADDON_LOG_INFO, "Zattoo channel quality fields: %s", Utils::JsonMemberNames(*first["qualities"].Begin()).c_str());
+    /* Content of the fields we do not use yet, to see whether they carry editorial data. */
+    for (const char* field : {"recommendations", "sharing", "display_alias"})
+    {
+      if (!first.IsObject() || !first.HasMember(field))
+        continue;
+      rapidjson::StringBuffer buffer;
+      rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+      first[field].Accept(writer);
+      std::string dump = buffer.GetString();
+      if (dump.size() > 300)
+        dump = dump.substr(0, 300) + "...";
+      kodi::Log(ADDON_LOG_INFO, "Zattoo channel field '%s': %s", field, dump.c_str());
+    }
   }
 
   for (Value::ConstValueIterator itr1 = channels.Begin();
