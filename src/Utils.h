@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <map>
 #include "rapidjson/document.h"
 
 
@@ -28,5 +29,7 @@ public:
   static std::vector<std::string> JsonStringList(const rapidjson::Value& jsonValue, const char* fieldName);
   static std::string JsonMemberNames(const rapidjson::Value& jsonValue);
   static std::string LanguageName(const std::string& code);
+  static std::string GuessLanguage(const std::string& title, const std::string& cid);
+  static std::map<std::string, std::string> ParseLanguageTable(const std::string& content);
   static bool RunsOnLinux();
 };

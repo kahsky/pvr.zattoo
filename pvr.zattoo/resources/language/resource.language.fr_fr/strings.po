@@ -237,8 +237,8 @@ msgid "Channel groups by language"
 msgstr "Groupes de chaînes par langue"
 
 msgctxt "#30025"
-msgid "Adds one channel group per language reported by Zattoo for the channel."
-msgstr "Ajoute un groupe de chaînes par langue indiquée par Zattoo."
+msgid "Adds one channel group per language (from a bundled table, markers like [fr] in the channel name, or well known names)."
+msgstr "Ajoute un groupe de chaînes par langue (table embarquée, marqueurs comme [fr] dans le nom de la chaîne, ou noms connus)."
 
 msgctxt "#30026"
 msgid "Language"

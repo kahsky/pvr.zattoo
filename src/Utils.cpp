@@ -295,3 +295,73 @@ std::string Utils::LanguageName(const std::string& code)
     c = static_cast<char>(toupper(static_cast<unsigned char>(c)));
   return upper;
 }
+
+static std::string ToLower(const std::string& text)
+{
+  std::string lower = text;
+  for (char& c : lower)
+    c = static_cast<char>(tolower(static_cast<unsigned char>(c)));
+  return lower;
+}
+
+std::map<std::string, std::string> Utils::ParseLanguageTable(const std::string& content)
+{
+  std::map<std::string, std::string> table;
+  std::istringstream stream(content);
+  std::string line;
+  while (std::getline(stream, line))
+  {
+    while (!line.empty() && (line.back() == '\r' || line.back() == ' ' || line.back() == '\t'))
+      line.pop_back();
+    if (line.empty() || line[0] == '#')
+      continue;
+    size_t sep = line.find(';');
+    if (sep == std::string::npos || sep == 0 || sep + 1 >= line.size())
+      continue;
+    table[line.substr(0, sep)] = ToLower(line.substr(sep + 1));
+  }
+  return table;
+}
+
+std::string Utils::GuessLanguage(const std::string& title, const std::string& cid)
+{
+  /* 1. explicit marker in the title, e.g. "ARTE [fr] HD" or "Euronews [en] HD" */
+  const std::string lowerTitle = ToLower(title);
+  for (const char* code : {"fr", "de", "it", "en", "es", "pt", "rm", "tr", "ar", "ru", "nl", "pl"})
+  {
+    if (lowerTitle.find(std::string("[") + code + "]") != std::string::npos)
+      return code;
+  }
+  /* 2. well known names */
+  static const std::vector<std::pair<std::string, std::string>> hints = {
+      {"rts ", "fr"}, {"rts1", "fr"}, {"rts2", "fr"}, {"tf1", "fr"}, {"tfx", "fr"}, {"tmc", "fr"}, {"6ter", "fr"}, {"w9", "fr"},
+      {"m6", "fr"}, {"france 2", "fr"}, {"france 3", "fr"}, {"france 4", "fr"}, {"france 5", "fr"}, {"france info", "fr"},
+      {"gulli", "fr"}, {"cstar", "fr"}, {"c8", "fr"}, {"canal+", "fr"}, {"canal +", "fr"}, {"tv5", "fr"}, {"carac", "fr"},
+      {"latele", "fr"}, {"la tele", "fr"}, {"léman", "fr"}, {"leman", "fr"}, {"bfm", "fr"}, {"cnews", "fr"}, {"lci", "fr"},
+      {"rmc", "fr"}, {"nrj", "fr"}, {"rtl9", "fr"}, {"ab3", "fr"}, {"la une", "fr"}, {"tipik", "fr"}, {"rouge", "fr"},
+      {"paris première", "fr"}, {"téva", "fr"}, {"teva", "fr"}, {"chérie", "fr"}, {"cherie", "fr"}, {"arte france", "fr"},
+      {"france 24 fr", "fr"}, {"france24 fr", "fr"}, {"tv8 mont", "fr"}, {"suisse", "fr"}, {"romand", "fr"},
+      {"srf", "de"}, {"sf 1", "de"}, {"sf 2", "de"}, {"zdf", "de"}, {"ard", "de"}, {"das erste", "de"}, {"rtl", "de"},
+      {"pro7", "de"}, {"prosieben", "de"}, {"sat.1", "de"}, {"sat 1", "de"}, {"vox", "de"}, {"kabel", "de"}, {"3+", "de"},
+      {"4+", "de"}, {"5+", "de"}, {"6+", "de"}, {"7+", "de"}, {"orf", "de"}, {"servus", "de"}, {"nitro", "de"}, {"dmax", "de"},
+      {"n-tv", "de"}, {"ntv", "de"}, {"welt", "de"}, {"kika", "de"}, {"super rtl", "de"}, {"toggo", "de"}, {"sixx", "de"},
+      {"tele ", "de"}, {"telezüri", "de"}, {"telebärn", "de"}, {"telebasel", "de"}, {"tele m1", "de"}, {"tele top", "de"},
+      {"tele 1", "de"}, {"3sat", "de"}, {"arte de", "de"}, {"phoenix", "de"}, {"tagesschau", "de"}, {"deutsche", "de"},
+      {"schweiz", "de"}, {"puls 8", "de"}, {"puls8", "de"}, {"tv24", "de"}, {"tv25", "de"}, {"s1", "de"}, {"star tv", "de"},
+      {"rsi", "it"}, {"rai", "it"}, {"canale 5", "it"}, {"italia", "it"}, {"rete 4", "it"}, {"rete4", "it"}, {"la7", "it"},
+      {"mediaset", "it"}, {"teleticino", "it"}, {"tele ticino", "it"}, {"tv8", "it"}, {"svizzera", "it"},
+      {"bbc", "en"}, {"cnn", "en"}, {"sky news", "en"}, {"bloomberg", "en"}, {"cnbc", "en"}, {"al jazeera", "en"},
+      {"euronews", "en"}, {"france 24 en", "en"}, {"france24 en", "en"}, {"itv", "en"}, {"channel 4", "en"}, {"film4", "en"},
+      {"more4", "en"}, {"e4", "en"}, {"5usa", "en"}, {"rt ", "en"}, {"cbs", "en"}, {"nbc", "en"}, {"fox", "en"}, {"discovery", "en"},
+      {"tve", "es"}, {"24 horas", "es"}, {"antena 3", "es"}, {"telecinco", "es"},
+      {"trt", "tr"}, {"show tv", "tr"}, {"kanal d", "tr"}, {"atv", "tr"},
+      {"rtp", "pt"}, {"sic", "pt"}, {"globo", "pt"},
+      {"rtr", "rm"}, {"rumantsch", "rm"}};
+  const std::string lowerCid = ToLower(cid);
+  for (const auto& hint : hints)
+  {
+    if (lowerTitle.find(hint.first) != std::string::npos || lowerCid.find(hint.first) != std::string::npos)
+      return hint.second;
+  }
+  return "";
+}

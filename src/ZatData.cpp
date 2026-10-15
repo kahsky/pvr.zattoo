@@ -110,6 +110,20 @@ bool ZatData::LoadChannels()
   }
   const Value& channels = doc["channels"];
 
+  /* Languages: the API does not carry them, use the bundled table (cid;code),
+   * optionally overridden by channel_languages.txt in the user data folder,
+   * then markers like "[fr]" in the title and well known channel names. */
+  std::map<std::string, std::string> languageTable;
+  for (const std::string& path : {std::string("special://xbmc/addons/pvr.zattoo/resources/channel_languages.txt"),
+                                  std::string("special://home/addons/pvr.zattoo/resources/channel_languages.txt"),
+                                  UserPath() + "channel_languages.txt"})
+  {
+    if (!kodi::vfs::FileExists(path, true))
+      continue;
+    for (const auto& entry : Utils::ParseLanguageTable(Utils::ReadFile(path)))
+      languageTable[entry.first] = entry.second;
+  }
+
   /* Log the structure of the channel list once per session: handy to see which
    * optional fields (languages, countries, logo sizes, ...) this account gets. */
   if (groups.IsArray() && groups.Size() > 0)
@@ -140,6 +154,17 @@ bool ZatData::LoadChannels()
       channel.languages = Utils::JsonStringList(channelItem, "language");
     if (channel.languages.empty())
       channel.languages = Utils::JsonStringList(channelItem, "lang");
+    if (channel.languages.empty())
+    {
+      std::string code;
+      auto tableEntry = languageTable.find(cid);
+      if (tableEntry != languageTable.end())
+        code = tableEntry->second;
+      if (code.empty())
+        code = Utils::GuessLanguage(Utils::JsonStringOrEmpty(channelItem, "title"), cid);
+      if (!code.empty())
+        channel.languages.push_back(code);
+    }
 
     /* Name and logo of the first quality, used when no quality is available
      * with the current subscription so that the channel is not shown as "Unknown". */
@@ -204,7 +229,9 @@ bool ZatData::LoadChannels()
       }
     }
     if (byLanguage.empty())
-      kodi::Log(ADDON_LOG_INFO, "Channel groups by language requested, but the channel list carries no language field (see 'Zattoo channel fields' above).");
+      kodi::Log(ADDON_LOG_INFO, "Channel groups by language requested, but no language could be determined for any channel.");
+    else
+      kodi::Log(ADDON_LOG_INFO, "Channel groups by language: %d groups.", static_cast<int>(byLanguage.size()));
     for (auto& entry : byLanguage)
       m_channelGroups.push_back(entry.second);
   }

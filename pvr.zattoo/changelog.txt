@@ -1,3 +1,6 @@
+v21.4.0
+- Channel groups by language now work without API support: bundled cid table, user override file, [xx] markers and known channel names
+
 v21.3.0
 - Optional channel groups per language, based on the language field of the channel list when Zattoo provides it
 - Log the fields of the channel list once per session to ease diagnostics

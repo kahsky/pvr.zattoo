@@ -326,8 +326,8 @@ msgstr "Sendergruppen nach Sprache"
 #. Help text to setting #30024
 #: pvr.zattoo/resources/settings.xml
 msgctxt "#30025"
-msgid "Adds one channel group per language reported by Zattoo for the channel."
-msgstr "Fügt pro von Zattoo gemeldeter Sprache eine Sendergruppe hinzu."
+msgid "Adds one channel group per language (from a bundled table, markers like [fr] in the channel name, or well known names)."
+msgstr "Fügt pro Sprache eine Sendergruppe hinzu (aus einer mitgelieferten Tabelle, Kennzeichen wie [de] im Sendernamen oder bekannten Namen)."
 
 #. Prefix of the channel groups created per language
 #: src/ZatData.cpp

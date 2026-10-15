@@ -155,7 +155,7 @@ msgstr ""
 #. Help text to setting #30024
 #: pvr.zattoo/resources/settings.xml
 msgctxt "#30025"
-msgid "Adds one channel group per language reported by Zattoo for the channel."
+msgid "Adds one channel group per language (from a bundled table, markers like [fr] in the channel name, or well known names)."
 msgstr ""
 
 #. Prefix of the channel groups created per language
