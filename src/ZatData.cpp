@@ -194,6 +194,11 @@ ZatData::ZatData() :
   m_settings(new CSettings())
 {
   m_settings->Load();
+  const std::string userPath = UserPath();
+  if (!kodi::vfs::DirectoryExists(userPath) && !kodi::vfs::CreateDirectory(userPath))
+  {
+    kodi::Log(ADDON_LOG_ERROR, "Could not create user data directory [%s].", userPath.c_str());
+  }
   m_epgDB = new EpgDB(UserPath());
   m_recordingsDB = new RecordingsDB(UserPath());
   m_parameterDB = new ParameterDB(UserPath());
