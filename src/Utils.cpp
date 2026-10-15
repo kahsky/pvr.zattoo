@@ -140,6 +140,10 @@ std::string Utils::GetImageUrl(const std::string& imageToken) {
   return "https://images.zattic.com/cms/" + imageToken + "/format_640x360.jpg";
 }
 
+std::string Utils::GetImageUrlOriginal(const std::string& imageToken) {
+  return "https://images.zattic.com/cms/" + imageToken + "/original.jpg";
+}
+
 std::string Utils::JsonStringOrEmpty(const rapidjson::Value& jsonValue, const char* fieldName)
 {
   if (!jsonValue.HasMember(fieldName) || !jsonValue[fieldName].IsString())

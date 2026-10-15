@@ -80,6 +80,14 @@ bool CSettings::Load()
     m_hideUnavailable = false;
   }
 
+  if (!kodi::addon::CheckSettingInt("logoVariant", m_logoVariant))
+  {
+    /* If setting is unknown fallback to defaults */
+    kodi::Log(ADDON_LOG_ERROR,
+              "Couldn't get 'logoVariant' setting, falling back to 'white' as default");
+    m_logoVariant = 0;
+  }
+
   if (!kodi::addon::CheckSettingString("parentalPin", m_parentalPin))
   {
     /* If setting is unknown fallback to defaults */
@@ -186,6 +194,15 @@ ADDON_STATUS CSettings::SetSetting(const std::string& settingName,
     if (m_hideUnavailable != settingValue.GetBoolean())
     {
       m_hideUnavailable = settingValue.GetBoolean();
+      return ADDON_STATUS_NEED_RESTART;
+    }
+  }
+  else if (settingName == "logoVariant")
+  {
+    kodi::Log(ADDON_LOG_DEBUG, "Changed Setting 'logoVariant' from %d to %d", m_logoVariant, settingValue.GetInt());
+    if (m_logoVariant != settingValue.GetInt())
+    {
+      m_logoVariant = settingValue.GetInt();
       return ADDON_STATUS_NEED_RESTART;
     }
   }

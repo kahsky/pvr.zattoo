@@ -292,3 +292,27 @@ msgstr "Sender, die mit dem aktuellen Abonnement nicht verfügbar sind, werden i
 msgctxt "#30204"
 msgid "Please enter your Zattoo username and password in the add-on settings"
 msgstr "Bitte Zattoo-Benutzername und -Passwort in den Addon-Einstellungen eingeben"
+
+#. Selection list on settings to choose the colour of the channel logos
+#: pvr.zattoo/resources/settings.xml
+msgctxt "#30020"
+msgid "Channel logo variant"
+msgstr "Variante der Senderlogos"
+
+#. Help text to setting #30020
+#: pvr.zattoo/resources/settings.xml
+msgctxt "#30021"
+msgid "White logos suit dark skins, black logos suit light skins."
+msgstr "Weisse Logos passen zu dunklen Skins, schwarze zu hellen Skins."
+
+#. Selection value for setting defined with id #30020
+#: pvr.zattoo/resources/settings.xml
+msgctxt "#30022"
+msgid "White"
+msgstr "Weiss"
+
+#. Selection value for setting defined with id #30020
+#: pvr.zattoo/resources/settings.xml
+msgctxt "#30023"
+msgid "Black"
+msgstr "Schwarz"

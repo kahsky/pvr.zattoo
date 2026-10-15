@@ -147,8 +147,10 @@ void ZattooEpgProvider::SendEpgDBInfo(EpgDBInfo &epgDBInfo) {
   tag.SetParentalRating(epgDBInfo.parentalRating);
   tag.SetStarRating(0); /* not supported */
   tag.SetSeriesNumber(epgDBInfo.season);
-  tag.SetEpisodeNumber(epgDBInfo.episode);  
+  tag.SetEpisodeNumber(epgDBInfo.episode);
   tag.SetEpisodePartNumber(EPG_TAG_INVALID_SERIES_EPISODE); /* not supported */
+  if (epgDBInfo.season > 0 || epgDBInfo.episode > 0)
+    tag.SetFlags(EPG_TAG_FLAG_IS_SERIES);
   
   std::string genreStr = epgDBInfo.genre;
   int genre = m_categories.Category(genreStr);

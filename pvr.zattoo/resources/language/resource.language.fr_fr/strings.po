@@ -215,3 +215,19 @@ msgstr "Niveau DRM"
 msgctxt "#30399"
 msgid "Set the supported DRM level. Auto uses L3 for Linux and L2 otherwise."
 msgstr "Définit le niveau DRM pris en charge. Auto utilise L3 sous Linux et L2 ailleurs."
+
+msgctxt "#30020"
+msgid "Channel logo variant"
+msgstr "Variante des logos de chaînes"
+
+msgctxt "#30021"
+msgid "White logos suit dark skins, black logos suit light skins."
+msgstr "Les logos blancs conviennent aux skins sombres, les logos noirs aux skins clairs."
+
+msgctxt "#30022"
+msgid "White"
+msgstr "Blancs"
+
+msgctxt "#30023"
+msgid "Black"
+msgstr "Noirs"

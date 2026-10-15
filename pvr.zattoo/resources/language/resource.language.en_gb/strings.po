@@ -122,6 +122,30 @@ msgctxt "#30019"
 msgid "Channels which are not available with the current subscription are not shown in Kodi."
 msgstr ""
 
+#. Selection list on settings to choose the colour of the channel logos
+#: pvr.zattoo/resources/settings.xml
+msgctxt "#30020"
+msgid "Channel logo variant"
+msgstr ""
+
+#. Help text to setting #30020
+#: pvr.zattoo/resources/settings.xml
+msgctxt "#30021"
+msgid "White logos suit dark skins, black logos suit light skins."
+msgstr ""
+
+#. Selection value for setting defined with id #30020
+#: pvr.zattoo/resources/settings.xml
+msgctxt "#30022"
+msgid "White"
+msgstr ""
+
+#. Selection value for setting defined with id #30020
+#: pvr.zattoo/resources/settings.xml
+msgctxt "#30023"
+msgid "Black"
+msgstr ""
+
 #. Selection list on settings to get wanted stream provider
 #: pvr.zattoo/resources/settings.xml
 msgctxt "#30098"

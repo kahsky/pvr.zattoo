@@ -96,6 +96,7 @@ bool ZatData::LoadChannels()
   }
 
   int channelNumber = favs.Size();
+  const std::string logoVariant = m_settings->GetLogoVariant() == 1 ? "black" : "white";
   const Value& groups = doc["groups"];
 
   //Load the channel groups and channels
@@ -134,7 +135,7 @@ bool ZatData::LoadChannels()
       const Value& qualityItem = (*itr2);
       if (fallbackName.empty()) {
         fallbackName = Utils::JsonStringOrEmpty(qualityItem, "title");
-        fallbackLogo = BestLogoPath(qualityItem);
+        fallbackLogo = BestLogoPath(qualityItem, logoVariant);
       }
       std::string avail = Utils::JsonStringOrEmpty(qualityItem, "availability");
       if (avail != "available") {
@@ -144,7 +145,7 @@ bool ZatData::LoadChannels()
       channel.qualityWithDrm.push_back({Utils::JsonStringOrEmpty(qualityItem, "level"), drmRequired});
       if (channel.name.empty()) {
         channel.name = Utils::JsonStringOrEmpty(qualityItem, "title");
-        channel.strLogoPath = BestLogoPath(qualityItem);
+        channel.strLogoPath = BestLogoPath(qualityItem, logoVariant);
       }
     }
     channel.available = !channel.qualityWithDrm.empty();
@@ -267,7 +268,7 @@ PVR_ERROR ZatData::GetCapabilities(kodi::addon::PVRCapabilities& capabilities)
   capabilities.SetSupportsChannelGroups(true);
   capabilities.SetSupportsRecordingPlayCount(true);
   capabilities.SetSupportsLastPlayedPosition(true);
-  capabilities.SetSupportsRecordingsRename(true);
+  capabilities.SetSupportsRecordingsRename(false); /* not offered by the Zattoo API */
   capabilities.SetSupportsRecordingsLifetimeChange(false);
   capabilities.SetSupportsDescrambleInfo(false);
   capabilities.SetSupportsRecordingEdl(true);
@@ -298,32 +299,39 @@ PVR_ERROR ZatData::GetProviders(kodi::addon::PVRProvidersResultSet& results)
   return PVR_ERROR_NO_ERROR;
 }
 
-std::string ZatData::BestLogoPath(const Value& qualityItem)
+std::string ZatData::BestLogoPath(const Value& qualityItem, const std::string& variant)
 {
-  /* The API offers the logo in several sizes (logo_white_<width>, ...).
-   * Take the largest white variant so that skins with big logos stay sharp. */
-  std::string best;
-  int bestSize = -1;
-  if (qualityItem.IsObject())
+  /* The API offers the logo in several sizes and colours (logo_white_<width>,
+   * logo_black_<width>, ...). Take the largest one of the wanted colour so that
+   * skins with big logos stay sharp; fall back to any colour if needed. */
+  if (!qualityItem.IsObject())
+    return "";
+  const std::string prefixes[] = {"logo_" + variant + "_", "logo_"};
+  for (const std::string& prefix : prefixes)
   {
+    std::string best;
+    int bestSize = -1;
     for (Value::ConstMemberIterator it = qualityItem.MemberBegin(); it != qualityItem.MemberEnd(); ++it)
     {
       const std::string key = it->name.GetString();
-      if (key.rfind("logo_white_", 0) != 0 || !it->value.IsString() || it->value.GetStringLength() == 0)
+      if (key.rfind(prefix, 0) != 0 || !it->value.IsString() || it->value.GetStringLength() == 0)
         continue;
-      int size = atoi(key.c_str() + 11);
+      const std::string rest = key.substr(prefix.length());
+      const size_t digits = rest.find_last_of('_');
+      int size = atoi(digits == std::string::npos ? rest.c_str() : rest.c_str() + digits + 1);
       if (size > bestSize)
       {
         bestSize = size;
         best = it->value.GetString();
       }
     }
+    if (best.empty())
+      continue;
+    if (best.rfind("http", 0) == 0)
+      return best;
+    return "https://logos.zattic.com" + best;
   }
-  if (best.empty())
-    return "";
-  if (best.rfind("http", 0) == 0)
-    return best;
-  return "https://logos.zattic.com" + best;
+  return "";
 }
 
 PVR_ERROR ZatData::GetBackendName(std::string& name)
@@ -360,11 +368,12 @@ PVR_ERROR ZatData::GetChannelGroups(bool radio, kodi::addon::PVRChannelGroupsRes
     return PVR_ERROR_SERVER_ERROR;
   }
 
+  unsigned int position = 0;
   for (const auto& group : m_channelGroups)
   {
     kodi::addon::PVRChannelGroup xbmcGroup;
 
-    xbmcGroup.SetPosition(0); /* not supported  */
+    xbmcGroup.SetPosition(++position); /* same order as on Zattoo */
     xbmcGroup.SetIsRadio(false); /* is radio group */
     xbmcGroup.SetGroupName(group.name);
 
@@ -956,6 +965,8 @@ PVR_ERROR ZatData::GetRecordings(bool deleted, kodi::addon::PVRRecordingsResultS
 
       tag.SetIsDeleted(false);
       tag.SetClientProviderUid(ZATTOO_PROVIDER_UID);
+      tag.SetChannelType(PVR_RECORDING_CHANNEL_TYPE_TV);
+      tag.SetEPGEventId(static_cast<unsigned int>(programId)); /* lets Kodi show the EPG details */
 
       tag.SetRecordingId(std::to_string(recording["id"].GetInt()));
       tag.SetTitle(Utils::JsonStringOrEmpty(recording, "title"));
@@ -969,8 +980,13 @@ PVR_ERROR ZatData::GetRecordings(bool deleted, kodi::addon::PVRRecordingsResultS
       }
 
       std::string imageToken = Utils::JsonStringOrEmpty(recording, "image_token");
-      std::string imageUrl = Utils::GetImageUrl(imageToken);;
-      tag.SetIconPath(imageUrl);
+      if (!imageToken.empty())
+      {
+        std::string imageUrl = Utils::GetImageUrl(imageToken);
+        tag.SetIconPath(imageUrl);
+        tag.SetThumbnailPath(imageUrl);
+        tag.SetFanartPath(Utils::GetImageUrlOriginal(imageToken));
+      }
 
       std::string cid = Utils::JsonStringOrEmpty(recording, "cid");
       auto iterator = m_channelsByCid.find(cid);
@@ -996,6 +1012,7 @@ PVR_ERROR ZatData::GetRecordings(bool deleted, kodi::addon::PVRRecordingsResultS
 
       if (Utils::JsonIntOrZero(recording, "tv_series_id")) {
           tag.SetDirectory(tag.GetTitle());
+          tag.SetFlags(PVR_RECORDING_FLAG_IS_SERIES);
       }
       
       RecordingDBInfo recordingDBInfo = m_recordingsDB->Get(tag.GetRecordingId());
