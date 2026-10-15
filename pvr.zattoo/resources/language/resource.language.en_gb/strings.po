@@ -104,6 +104,24 @@ msgctxt "#30016"
 msgid "Enforce Widevine L2"
 msgstr ""
 
+#. Channel group name for the Zattoo favourite channels
+#: src/ZatData.cpp
+msgctxt "#30017"
+msgid "Favourites"
+msgstr ""
+
+#. Boolean setting to hide channels which are not part of the subscription
+#: pvr.zattoo/resources/settings.xml
+msgctxt "#30018"
+msgid "Hide channels not included in the subscription"
+msgstr ""
+
+#. Help text to setting #30018
+#: pvr.zattoo/resources/settings.xml
+msgctxt "#30019"
+msgid "Channels which are not available with the current subscription are not shown in Kodi."
+msgstr ""
+
 #. Selection list on settings to get wanted stream provider
 #: pvr.zattoo/resources/settings.xml
 msgctxt "#30098"
@@ -241,6 +259,12 @@ msgstr ""
 
 msgctxt "#30203"
 msgid "Server not reachable!"
+msgstr ""
+
+#. Connection state message shown while username or password are missing
+#: src/Session.cpp
+msgctxt "#30204"
+msgid "Please enter your Zattoo username and password in the add-on settings"
 msgstr ""
 
 #. Selection value for setting defined with id #30398

@@ -268,3 +268,27 @@ msgstr ""
 msgctxt "#30399"
 msgid "Unterstütztes DRM level. Auto verwendet L3 für Linux, sonst L2."
 msgstr ""
+
+#. Channel group name for the Zattoo favourite channels
+#: src/ZatData.cpp
+msgctxt "#30017"
+msgid "Favourites"
+msgstr "Favoriten"
+
+#. Boolean setting to hide channels which are not part of the subscription
+#: pvr.zattoo/resources/settings.xml
+msgctxt "#30018"
+msgid "Hide channels not included in the subscription"
+msgstr "Nicht im Abonnement enthaltene Sender ausblenden"
+
+#. Help text to setting #30018
+#: pvr.zattoo/resources/settings.xml
+msgctxt "#30019"
+msgid "Channels which are not available with the current subscription are not shown in Kodi."
+msgstr "Sender, die mit dem aktuellen Abonnement nicht verfügbar sind, werden in Kodi nicht angezeigt."
+
+#. Connection state message shown while username or password are missing
+#: src/Session.cpp
+msgctxt "#30204"
+msgid "Please enter your Zattoo username and password in the add-on settings"
+msgstr "Bitte Zattoo-Benutzername und -Passwort in den Addon-Einstellungen eingeben"

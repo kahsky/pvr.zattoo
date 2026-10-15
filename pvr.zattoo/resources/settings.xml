@@ -27,6 +27,11 @@
           <default>false</default>
           <control type="toggle" />
         </setting>
+        <setting id="hideUnavailable" type="boolean" label="30018" help="30019">
+          <level>0</level>
+          <default>false</default>
+          <control type="toggle" />
+        </setting>
         <setting id="smarttv" type="boolean" label="30004" help="30005">
           <level>0</level>
           <default>false</default>

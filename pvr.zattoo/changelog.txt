@@ -1,3 +1,15 @@
+v21.1.0
+- Add a French translation
+- Localise the name of the favourites channel group
+- Use the largest channel logo offered by the API when no bundled logo exists
+- Add a setting to hide channels not included in the subscription
+- Fill cast, director, year and parental rating of EPG entries from the program details
+- Report a PVR provider for channels and recordings
+- Do not advertise radio support, no radio channels are delivered
+- Start in "access denied" state when credentials are missing instead of blocking the PVR manager
+- Retry failed logins with an increasing delay and report rejected credentials
+- Use an HTTP connection timeout
+
 v21.0.8
 - Create the add-on user data directory before opening the databases
 

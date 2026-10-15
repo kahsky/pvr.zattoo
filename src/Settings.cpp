@@ -72,6 +72,14 @@ bool CSettings::Load()
     m_skipCommercials = false;
   }
 
+  if (!kodi::addon::CheckSettingBoolean("hideUnavailable", m_hideUnavailable))
+  {
+    /* If setting is unknown fallback to defaults */
+    kodi::Log(ADDON_LOG_ERROR,
+              "Couldn't get 'hideUnavailable' setting, falling back to 'false' as default");
+    m_hideUnavailable = false;
+  }
+
   if (!kodi::addon::CheckSettingString("parentalPin", m_parentalPin))
   {
     /* If setting is unknown fallback to defaults */
@@ -170,6 +178,15 @@ ADDON_STATUS CSettings::SetSetting(const std::string& settingName,
     {
       m_skipCommercials = settingValue.GetBoolean();
       return ADDON_STATUS_OK;
+    }
+  }
+  else if (settingName == "hideUnavailable")
+  {
+    kodi::Log(ADDON_LOG_DEBUG, "Changed Setting 'hideUnavailable' from %u to %u", m_hideUnavailable, settingValue.GetBoolean());
+    if (m_hideUnavailable != settingValue.GetBoolean())
+    {
+      m_hideUnavailable = settingValue.GetBoolean();
+      return ADDON_STATUS_NEED_RESTART;
     }
   }
   else if (settingName == "parentalPin")

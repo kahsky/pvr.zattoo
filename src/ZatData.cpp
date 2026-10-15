@@ -118,16 +118,24 @@ bool ZatData::LoadChannels()
     std::string cid = Utils::JsonStringOrEmpty(channelItem, "cid");
     channel.iUniqueId = Utils::GetChannelId(cid.c_str());
     channel.cid = cid;
-    channel.iChannelNumber = ++channelNumber;
     channel.recordingEnabled =
         channelItem.HasMember("recording") ?
             channelItem["recording"].GetBool() : false;
-    
+
+    /* Name and logo of the first quality, used when no quality is available
+     * with the current subscription so that the channel is not shown as "Unknown". */
+    std::string fallbackName;
+    std::string fallbackLogo;
+
     const Value& qualities = channelItem["qualities"];
     for (Value::ConstValueIterator itr2 = qualities.Begin();
         itr2 != qualities.End(); ++itr2)
     {
       const Value& qualityItem = (*itr2);
+      if (fallbackName.empty()) {
+        fallbackName = Utils::JsonStringOrEmpty(qualityItem, "title");
+        fallbackLogo = BestLogoPath(qualityItem);
+      }
       std::string avail = Utils::JsonStringOrEmpty(qualityItem, "availability");
       if (avail != "available") {
         continue;
@@ -136,18 +144,31 @@ bool ZatData::LoadChannels()
       channel.qualityWithDrm.push_back({Utils::JsonStringOrEmpty(qualityItem, "level"), drmRequired});
       if (channel.name.empty()) {
         channel.name = Utils::JsonStringOrEmpty(qualityItem, "title");
-        channel.strLogoPath = "http://logos.zattic.com" + Utils::JsonStringOrEmpty(qualityItem, "logo_white_84");
+        channel.strLogoPath = BestLogoPath(qualityItem);
       }
     }
-    PVRZattooChannelGroup &group = m_channelGroups[channelItem["group_index"].GetInt()];
-    group.channels.insert(group.channels.end(), channel);
+    channel.available = !channel.qualityWithDrm.empty();
+    if (!channel.available) {
+      channel.name = fallbackName;
+      channel.strLogoPath = fallbackLogo;
+    }
+    bool hidden = !channel.available && m_settings->GetHideUnavailableChannels();
+    if (!hidden) {
+      channel.iChannelNumber = ++channelNumber;
+    }
     allChannels[cid] = channel;
     m_channelsByCid[channel.cid] = channel;
     m_channelsByUid[channel.iUniqueId] = channel;
+    if (hidden) {
+      kodi::Log(ADDON_LOG_DEBUG, "Channel '%s' is not included in the subscription. Hidden.", cid.c_str());
+      continue;
+    }
+    PVRZattooChannelGroup &group = m_channelGroups[channelItem["group_index"].GetInt()];
+    group.channels.insert(group.channels.end(), channel);
   }
 
   PVRZattooChannelGroup favGroup;
-  favGroup.name = "Favoriten";
+  favGroup.name = kodi::addon::GetLocalizedString(30017, "Favourites");
 
   for (Value::ConstValueIterator itr = favs.Begin(); itr != favs.End(); ++itr)
   {
@@ -156,6 +177,8 @@ bool ZatData::LoadChannels()
     if (allChannels.find(favCid) != allChannels.end())
     {
       ZatChannel channel = allChannels[favCid];
+      if (!channel.available && m_settings->GetHideUnavailableChannels())
+        continue;
       channel.iChannelNumber = static_cast<int>(favGroup.channels.size() + 1);
       favGroup.channels.insert(favGroup.channels.end(), channel);
       m_channelsByCid[channel.cid] = channel;
@@ -239,7 +262,8 @@ PVR_ERROR ZatData::GetCapabilities(kodi::addon::PVRCapabilities& capabilities)
   capabilities.SetSupportsEPG(true);
   capabilities.SetSupportsEPGEdl(true);
   capabilities.SetSupportsTV(true);
-  capabilities.SetSupportsRadio(true);
+  capabilities.SetSupportsRadio(false); /* no radio channels are delivered */
+  capabilities.SetSupportsProviders(true);
   capabilities.SetSupportsChannelGroups(true);
   capabilities.SetSupportsRecordingPlayCount(true);
   capabilities.SetSupportsLastPlayedPosition(true);
@@ -252,6 +276,54 @@ PVR_ERROR ZatData::GetCapabilities(kodi::addon::PVRCapabilities& capabilities)
   capabilities.SetSupportsTimers(m_session->IsRecordingEnabled());
 
   return PVR_ERROR_NO_ERROR;
+}
+
+PVR_ERROR ZatData::GetProvidersAmount(int& amount)
+{
+  amount = 1;
+  return PVR_ERROR_NO_ERROR;
+}
+
+PVR_ERROR ZatData::GetProviders(kodi::addon::PVRProvidersResultSet& results)
+{
+  kodi::addon::PVRProvider provider;
+  provider.SetUniqueId(ZATTOO_PROVIDER_UID);
+  provider.SetName(kodi::addon::GetLocalizedString(30100 + m_settings->GetProvider(), "Zattoo"));
+  provider.SetType(PVR_PROVIDER_TYPE_IPTV);
+  provider.SetIconPath(kodi::addon::GetAddonPath("icon.png"));
+  const std::string country = m_session->GetServiceRegionCountry();
+  if (!country.empty())
+    provider.SetCountries({country});
+  results.Add(provider);
+  return PVR_ERROR_NO_ERROR;
+}
+
+std::string ZatData::BestLogoPath(const Value& qualityItem)
+{
+  /* The API offers the logo in several sizes (logo_white_<width>, ...).
+   * Take the largest white variant so that skins with big logos stay sharp. */
+  std::string best;
+  int bestSize = -1;
+  if (qualityItem.IsObject())
+  {
+    for (Value::ConstMemberIterator it = qualityItem.MemberBegin(); it != qualityItem.MemberEnd(); ++it)
+    {
+      const std::string key = it->name.GetString();
+      if (key.rfind("logo_white_", 0) != 0 || !it->value.IsString() || it->value.GetStringLength() == 0)
+        continue;
+      int size = atoi(key.c_str() + 11);
+      if (size > bestSize)
+      {
+        bestSize = size;
+        best = it->value.GetString();
+      }
+    }
+  }
+  if (best.empty())
+    return "";
+  if (best.rfind("http", 0) == 0)
+    return best;
+  return "https://logos.zattic.com" + best;
 }
 
 PVR_ERROR ZatData::GetBackendName(std::string& name)
@@ -377,6 +449,7 @@ PVR_ERROR ZatData::GetChannels(bool radio, kodi::addon::PVRChannelsResultSet& re
       kodiChannel.SetChannelNumber(static_cast<unsigned int>(channel.iChannelNumber));
       kodiChannel.SetChannelName(channel.name);
       kodiChannel.SetEncryptionSystem(0);
+      kodiChannel.SetClientProviderUid(ZATTOO_PROVIDER_UID);
 
       std::ostringstream iconStream;
       iconStream
@@ -592,6 +665,9 @@ bool ZatData::ParseRecordingsTimers(const Value& recordings, std::map<int, ZatRe
         details.description = Utils::JsonStringOrEmpty(program, "d");
         details.seriesNumber = program.HasMember("s_no") && !program["s_no"].IsNull() ? program["s_no"].GetInt() : EPG_TAG_INVALID_SERIES_EPISODE;
         details.episodeNumber = program.HasMember("e_no") && !program["e_no"].IsNull() ? program["e_no"].GetInt() : EPG_TAG_INVALID_SERIES_EPISODE;
+        details.year = Utils::JsonNumberOrZero(program, "year");
+        if (details.year == 0)
+          details.year = Utils::JsonNumberOrZero(program, "yr");
 
         detailsById.insert(
             std::pair<int, ZatRecordingDetails>(program["id"].GetInt(), details));
@@ -879,6 +955,7 @@ PVR_ERROR ZatData::GetRecordings(bool deleted, kodi::addon::PVRRecordingsResultS
       kodi::addon::PVRRecording tag;
 
       tag.SetIsDeleted(false);
+      tag.SetClientProviderUid(ZATTOO_PROVIDER_UID);
 
       tag.SetRecordingId(std::to_string(recording["id"].GetInt()));
       tag.SetTitle(Utils::JsonStringOrEmpty(recording, "title"));
@@ -887,6 +964,8 @@ PVR_ERROR ZatData::GetRecordings(bool deleted, kodi::addon::PVRRecordingsResultS
         tag.SetPlot(detailIterator->second.description);
         tag.SetSeriesNumber(detailIterator->second.seriesNumber);
         tag.SetEpisodeNumber(detailIterator->second.episodeNumber);
+        if (detailIterator->second.year > 0)
+          tag.SetYear(detailIterator->second.year);
       }
 
       std::string imageToken = Utils::JsonStringOrEmpty(recording, "image_token");

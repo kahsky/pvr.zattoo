@@ -1,4 +1,5 @@
 #include "Utils.h"
+#include <cstdlib>
 #ifdef TARGET_WINDOWS
 #include "windows.h"
 #endif
@@ -184,4 +185,35 @@ bool Utils::RunsOnLinux()
     #else
     return false;
     #endif
+}
+
+int Utils::JsonNumberOrZero(const rapidjson::Value& jsonValue, const char* fieldName)
+{
+  if (!jsonValue.IsObject() || !jsonValue.HasMember(fieldName))
+    return 0;
+  const rapidjson::Value& value = jsonValue[fieldName];
+  if (value.IsInt())
+    return value.GetInt();
+  if (value.IsString())
+    return atoi(value.GetString());
+  return 0;
+}
+
+std::string Utils::JsonCredits(const rapidjson::Value& program, const char* role, const std::string& separator)
+{
+  std::string result;
+  if (!program.IsObject() || !program.HasMember("cr") || !program["cr"].IsObject())
+    return result;
+  const rapidjson::Value& credits = program["cr"];
+  if (!credits.HasMember(role) || !credits[role].IsArray())
+    return result;
+  for (rapidjson::Value::ConstValueIterator it = credits[role].Begin(); it != credits[role].End(); ++it)
+  {
+    if (!it->IsString() || it->GetStringLength() == 0)
+      continue;
+    if (!result.empty())
+      result += separator;
+    result += it->GetString();
+  }
+  return result;
 }

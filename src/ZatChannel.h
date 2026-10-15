@@ -6,9 +6,10 @@
 
 struct ZatChannel
 {
-  int iUniqueId;
-  int iChannelNumber;
-  bool recordingEnabled;
+  int iUniqueId = 0;
+  int iChannelNumber = 0;
+  bool recordingEnabled = false;
+  bool available = true;
   std::vector<std::pair<std::string, bool>> qualityWithDrm;
   std::string name;
   std::string strLogoPath;
