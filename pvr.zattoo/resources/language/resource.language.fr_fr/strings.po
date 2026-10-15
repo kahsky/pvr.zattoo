@@ -231,3 +231,15 @@ msgstr "Blancs"
 msgctxt "#30023"
 msgid "Black"
 msgstr "Noirs"
+
+msgctxt "#30024"
+msgid "Channel groups by language"
+msgstr "Groupes de chaînes par langue"
+
+msgctxt "#30025"
+msgid "Adds one channel group per language reported by Zattoo for the channel."
+msgstr "Ajoute un groupe de chaînes par langue indiquée par Zattoo."
+
+msgctxt "#30026"
+msgid "Language"
+msgstr "Langue"

@@ -109,6 +109,19 @@ bool ZatData::LoadChannels()
     m_channelGroups.insert(m_channelGroups.end(), group);
   }
   const Value& channels = doc["channels"];
+
+  /* Log the structure of the channel list once per session: handy to see which
+   * optional fields (languages, countries, logo sizes, ...) this account gets. */
+  if (groups.IsArray() && groups.Size() > 0)
+    kodi::Log(ADDON_LOG_INFO, "Zattoo group fields: %s", Utils::JsonMemberNames(*groups.Begin()).c_str());
+  if (channels.IsArray() && channels.Size() > 0)
+  {
+    const Value& first = *channels.Begin();
+    kodi::Log(ADDON_LOG_INFO, "Zattoo channel fields: %s", Utils::JsonMemberNames(first).c_str());
+    if (first.IsObject() && first.HasMember("qualities") && first["qualities"].IsArray() && first["qualities"].Size() > 0)
+      kodi::Log(ADDON_LOG_INFO, "Zattoo channel quality fields: %s", Utils::JsonMemberNames(*first["qualities"].Begin()).c_str());
+  }
+
   for (Value::ConstValueIterator itr1 = channels.Begin();
       itr1 != channels.End(); ++itr1)
   {
@@ -122,6 +135,11 @@ bool ZatData::LoadChannels()
     channel.recordingEnabled =
         channelItem.HasMember("recording") ?
             channelItem["recording"].GetBool() : false;
+    channel.languages = Utils::JsonStringList(channelItem, "languages");
+    if (channel.languages.empty())
+      channel.languages = Utils::JsonStringList(channelItem, "language");
+    if (channel.languages.empty())
+      channel.languages = Utils::JsonStringList(channelItem, "lang");
 
     /* Name and logo of the first quality, used when no quality is available
      * with the current subscription so that the channel is not shown as "Unknown". */
@@ -166,6 +184,29 @@ bool ZatData::LoadChannels()
     }
     PVRZattooChannelGroup &group = m_channelGroups[channelItem["group_index"].GetInt()];
     group.channels.insert(group.channels.end(), channel);
+  }
+
+  if (m_settings->GetLanguageGroups())
+  {
+    /* One extra group per language reported by the API, channels keep their numbers. */
+    std::map<std::string, PVRZattooChannelGroup> byLanguage;
+    for (const PVRZattooChannelGroup& group : m_channelGroups)
+    {
+      for (const ZatChannel& channel : group.channels)
+      {
+        for (const std::string& code : channel.languages)
+        {
+          PVRZattooChannelGroup& langGroup = byLanguage[Utils::LanguageName(code)];
+          if (langGroup.name.empty())
+            langGroup.name = kodi::addon::GetLocalizedString(30026, "Language") + ": " + Utils::LanguageName(code);
+          langGroup.channels.push_back(channel);
+        }
+      }
+    }
+    if (byLanguage.empty())
+      kodi::Log(ADDON_LOG_INFO, "Channel groups by language requested, but the channel list carries no language field (see 'Zattoo channel fields' above).");
+    for (auto& entry : byLanguage)
+      m_channelGroups.push_back(entry.second);
   }
 
   PVRZattooChannelGroup favGroup;

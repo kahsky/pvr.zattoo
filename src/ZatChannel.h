@@ -10,6 +10,7 @@ struct ZatChannel
   int iChannelNumber = 0;
   bool recordingEnabled = false;
   bool available = true;
+  std::vector<std::string> languages; /* language codes reported by the API, if any */
   std::vector<std::pair<std::string, bool>> qualityWithDrm;
   std::string name;
   std::string strLogoPath;

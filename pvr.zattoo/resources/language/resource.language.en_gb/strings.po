@@ -146,6 +146,24 @@ msgctxt "#30023"
 msgid "Black"
 msgstr ""
 
+#. Boolean setting to add one channel group per language
+#: pvr.zattoo/resources/settings.xml
+msgctxt "#30024"
+msgid "Channel groups by language"
+msgstr ""
+
+#. Help text to setting #30024
+#: pvr.zattoo/resources/settings.xml
+msgctxt "#30025"
+msgid "Adds one channel group per language reported by Zattoo for the channel."
+msgstr ""
+
+#. Prefix of the channel groups created per language
+#: src/ZatData.cpp
+msgctxt "#30026"
+msgid "Language"
+msgstr ""
+
 #. Selection list on settings to get wanted stream provider
 #: pvr.zattoo/resources/settings.xml
 msgctxt "#30098"

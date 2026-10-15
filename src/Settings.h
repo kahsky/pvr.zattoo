@@ -28,6 +28,7 @@ public:
   bool GetSkipCommercials() const { return m_skipCommercials; }
   bool GetHideUnavailableChannels() const { return m_hideUnavailable; }
   int GetLogoVariant() const { return m_logoVariant; }
+  bool GetLanguageGroups() const { return m_languageGroups; }
   int DrmLevel() const { return m_drmLevel; }
   const std::string GetParentalPin() const { return m_parentalPin; }
   int GetProvider() const { return m_provider; }
@@ -43,6 +44,7 @@ private:
   bool m_skipCommercials = false;
   bool m_hideUnavailable = false;
   int m_logoVariant = 0; /* 0 = white, 1 = black */
+  bool m_languageGroups = false;
   int m_drmLevel = 0;
   std::string m_parentalPin;
   int m_provider = 0;

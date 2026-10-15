@@ -1,3 +1,7 @@
+v21.3.0
+- Optional channel groups per language, based on the language field of the channel list when Zattoo provides it
+- Log the fields of the channel list once per session to ease diagnostics
+
 v21.2.0
 - Fanart in original resolution and thumbnails for recordings
 - Mark programs with a season or episode number as series, mark series recordings

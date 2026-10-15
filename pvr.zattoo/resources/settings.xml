@@ -32,6 +32,11 @@
           <default>false</default>
           <control type="toggle" />
         </setting>
+        <setting id="languageGroups" type="boolean" label="30024" help="30025">
+          <level>0</level>
+          <default>false</default>
+          <control type="toggle" />
+        </setting>
         <setting id="logoVariant" type="integer" label="30020" help="30021">
           <level>0</level>
           <default>0</default>

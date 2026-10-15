@@ -88,6 +88,14 @@ bool CSettings::Load()
     m_logoVariant = 0;
   }
 
+  if (!kodi::addon::CheckSettingBoolean("languageGroups", m_languageGroups))
+  {
+    /* If setting is unknown fallback to defaults */
+    kodi::Log(ADDON_LOG_ERROR,
+              "Couldn't get 'languageGroups' setting, falling back to 'false' as default");
+    m_languageGroups = false;
+  }
+
   if (!kodi::addon::CheckSettingString("parentalPin", m_parentalPin))
   {
     /* If setting is unknown fallback to defaults */
@@ -203,6 +211,15 @@ ADDON_STATUS CSettings::SetSetting(const std::string& settingName,
     if (m_logoVariant != settingValue.GetInt())
     {
       m_logoVariant = settingValue.GetInt();
+      return ADDON_STATUS_NEED_RESTART;
+    }
+  }
+  else if (settingName == "languageGroups")
+  {
+    kodi::Log(ADDON_LOG_DEBUG, "Changed Setting 'languageGroups' from %u to %u", m_languageGroups, settingValue.GetBoolean());
+    if (m_languageGroups != settingValue.GetBoolean())
+    {
+      m_languageGroups = settingValue.GetBoolean();
       return ADDON_STATUS_NEED_RESTART;
     }
   }

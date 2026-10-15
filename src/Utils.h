@@ -25,5 +25,8 @@ public:
   static bool JsonBoolOrFalse(const rapidjson::Value& jsonValue, const char* fieldName);
   static int JsonNumberOrZero(const rapidjson::Value& jsonValue, const char* fieldName);
   static std::string JsonCredits(const rapidjson::Value& program, const char* role, const std::string& separator);
+  static std::vector<std::string> JsonStringList(const rapidjson::Value& jsonValue, const char* fieldName);
+  static std::string JsonMemberNames(const rapidjson::Value& jsonValue);
+  static std::string LanguageName(const std::string& code);
   static bool RunsOnLinux();
 };
